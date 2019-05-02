@@ -1,15 +1,30 @@
-const Randomstring = require("randomstring");
-const HtmlWebPackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin'); 
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const Randomstring            = require("randomstring");
+const HtmlWebPackPlugin       = require('html-webpack-plugin');
+const CopyPlugin              = require('copy-webpack-plugin'); 
+const MiniCssExtractPlugin    = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserJSPlugin          = require('terser-webpack-plugin');
+const RemovePlugin            = require('remove-files-webpack-plugin');
+
 
 module.exports = {
     entry: "./src/js/index.js",
     output: {
         path: __dirname + '/build',
-        filename:  /* Randomstring.generate(24) + */ 'js/app.js'
+        filename:  'js/' + Randomstring.generate(24) + '.js'
+    },
+    optimization: {
+      minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
     },
     plugins: [
+        new RemovePlugin({
+            before: {
+              include: ['build']
+            },
+            after: {
+                // parameters.
+            }
+        }),
         new HtmlWebPackPlugin({
             template: './src/index.html'
         }),
@@ -22,7 +37,7 @@ module.exports = {
           to: './' 
       }]),
       new MiniCssExtractPlugin({
-        filename: './css/[name].css',
+        filename: 'css/'+ Randomstring.generate(24) +'.css',
         chunkFilename: '[id].css',
       })
     ],
@@ -31,16 +46,10 @@ module.exports = {
           {
             test: /\.css$/,
             use: [
-              {
-                loader: MiniCssExtractPlugin.loader,
-                options: {
-                  publicPath: '../',
-                  hmr: process.env.NODE_ENV === 'development',
-                },
-              },
-              'css-loader',
+              MiniCssExtractPlugin.loader, 'css-loader',
             ],
           },
+
         ],
       }
 }
